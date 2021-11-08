@@ -1,0 +1,7 @@
+[<Autodesk.Revit.DB.DesignOption object at 0x0000000000005608 [Autodesk.Revit.DB.DesignOption]>, 'Elevation Styles', 'HM - Colonial  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x0000000000005609 [Autodesk.Revit.DB.DesignOption]>, 'Foundation / Basement', 'Crawlspace  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x000000000000560A [Autodesk.Revit.DB.DesignOption]>, 'Front Layout Options', 'Bedroom 2 / Bedroom 3 / Full Bath  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x000000000000560B [Autodesk.Revit.DB.DesignOption]>, 'Primary Bed / Bath', 'Standard  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x000000000000560C [Autodesk.Revit.DB.DesignOption]>, 'Rear Layout Options', 'Standard  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x000000000000560D [Autodesk.Revit.DB.DesignOption]>, 'Room Lighting Options', 'N/A  <primary>', True]
+[<Autodesk.Revit.DB.DesignOption object at 0x000000000000560E [Autodesk.Revit.DB.DesignOption]>, 'Second Floor Layouts', 'No Second Floor  <primary>', True]
