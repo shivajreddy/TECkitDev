@@ -1,114 +1,124 @@
-# Floor from Rooms- V1 - </ShivaReddy>
+#Automate FLoor Boundaries - V2.2 - </ShivaReddy>
 import os
 import clr
 
-from pyrevit.framework import List, wpf, Controls, Imaging
-from pyrevit.revit.ui import *
-from pyrevit import revit, DB, UI, forms
-from Autodesk.Revit.UI import *
+from Autodesk.Revit import DB
+from Autodesk.Revit import UI
 from Autodesk.Revit.DB import *
-# from Autodesk.Revit.DB import FilteredElementCollector, Transaction, Level, Element, SpatialElement, FloorType
-# from Autodesk.Revit import UI
-# from Autodesk.Revit import DB
-from rpw.ui.forms import CommandLink, TaskDialog, Alert
+from Autodesk.Revit.UI import *
+from Autodesk.Revit.UI import Selection
 
+from pyrevit import UI
+from pyrevit import revit, DB
+from pyrevit import forms
+# from pyrevit.form import WPFWindow
+from pyrevit.revit.ui import *
+from pyrevit.framework import List, wpf, Controls, Imaging
 
-__title__ = "Floor from Room"
+__title__ = "Smart Floors"
 __author__ = "Shiva Reddy"
 
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
+filePath = doc.PathName
+fileTitle = doc.Title
+head,split,tail = filePath.partition(fileTitle)
+fileLocation = head
 t = Transaction(doc)
+# t.Start("Change GT Title")
+# t.Commit()
 
 ###### LET THE HACKING BEGIN ######
 
-def createFloor(thisRoom, floorTypeId, currentLevelId,isStructural):
-    thisRoomId = thisRoom.Id
-    thisRoomName = Element.Name.__get__(thisRoom)
+def createFloor(thisRoom, floorType, currentLevel,):
 
-    spatialElementBoundaryOptions = SpatialElementBoundaryOptions()
+	spatialElementBoundaryOptions = SpatialElementBoundaryOptions()
 
-    myBoundaries = []
-    myCurves = []
-    myCurveArray = CurveArray()
-    myCurveLoop = CurveLoop()
+	myBoundaries = []
+	myCurves = []
+	myCurveArray = CurveArray()
+	myCurveLoop = CurveLoop()
+	myCurveLoopList = []
 
-    myBoundaryList = thisRoom.GetBoundarySegments(spatialElementBoundaryOptions)
-    for boundary in myBoundaryList[0]:
-    	myBoundaries.append(boundary)
-    	myCurve = boundary.GetCurve()
-    	myCurves.append(myCurve)
-    	myCurveArray.Append(myCurve)
-        myCurveLoop.Append(myCurve)
-    
-    # Floor.Create(doc, myCurveLoop, floorTypeId, currentLevelId)
-    floor = doc.Create.NewFloor(myCurveArray, floorTypeId,currentLevelId,isStructural)
-    return floor
+	myBoundaryList = thisRoom.GetBoundarySegments(spatialElementBoundaryOptions)
+	for boundary in myBoundaryList[0]:
+		myBoundaries.append(boundary)
+		myCurve = boundary.GetCurve()
+		myCurves.append(myCurve)
+		myCurveArray.Append(myCurve)
+		myCurveLoop.Append(myCurve)
+	
+	myCurveLoopList.append(myCurveLoop)
+
+	floor = Floor.Create(doc, myCurveLoopList, floorType.Id, currentLevel.Id)
+	# floor = doc.Create.NewFloor(myCurveArray, floorTypeId,currentLevelId,isStructural)
+	return floor
+
 
 def getRoomsCreateFloors():
 
-    active = doc.ActiveView
-    level = active.LookupParameter("Associated Level")
+	active = doc.ActiveView
+	level = active.LookupParameter("Associated Level")
 
-# Checking if the current view is anything other than FloorPlan
-    if level == None:
-        Alert("Open FloorPlanView and select the button again", title="That is why you fail",header ="Only Jedi's can draw Floor's in any View", exit= True)
+	if level == None:
+		TaskDialog.Show("That is why you fail", "Only Jedi's can draw Floor's in any View")
 
-# If Its not a FloorPlan (Because 'Assosiated Level' parameter is only there in FloorPlan view)
-    else:
-        lvlCollector = FilteredElementCollector(doc).OfClass(Level).ToElements()
-        for lvl in lvlCollector:
-            if lvl.Name == level.AsString():
-                #Giving this variable the element itself, becuase CreateFloor() function needs the element itself
-                presentLevel = lvl
-                # presentId = lvl.Id
+	else:
+	#Get Which Floor should be used to for creating Floors from Rooms
+		floorTypes = FilteredElementCollector(doc).OfClass(FloorType).ToElements()
+		
+		chosenFloorTypeName = forms.CommandSwitchWindow.show([Element.Name.__get__(i) for i in floorTypes], message = "Pick Type of Floor to model")
+		for i in floorTypes:
+			if (Element.Name.__get__(i) == chosenFloorTypeName):
+				chosenFloorType = i
+		
+		# print("chosen floor ->{}, {}".format(Element.Name.__get__(chosenFloorType), chosenFloorType))
 
-        roomCollector = FilteredElementCollector(doc).WhereElementIsNotElementType().OfClass(SpatialElement)
-        currentViewRooms = []
+		chosenFloorTypeThickness = chosenFloorType.LookupParameter("Default Thickness").AsDouble()
 
-        for room in roomCollector:
-            #Checks |>| Location (checking if it is present in the active Design Option) |>| Type is a Room |>| Room's LevelId is the Current Level's Id
-            if (room.Location != None) and (str(room.GetType()) == "Autodesk.Revit.DB.Architecture.Room") and (room.LevelId == presentLevel.Id):
-                currentViewRooms.append(room)
-            
-        
-        finalCurrentViewRooms = forms.SelectFromList.show([Element.Name.__get__(i) for i in currentViewRooms], title ="Select the Rooms to create Floors for", button_name = "OK", multiselect = True)
+	# Get the current Level
+		lvlCollector = FilteredElementCollector(doc).OfClass(Level).ToElements()
+		
+		for lvl in lvlCollector:
+			if lvl.Name == level.AsString():
+				presentLevel = lvl
+				# presentId = lvl.Id
 
-        floorTypes = FilteredElementCollector(doc).OfClass(FloorType).ToElements()
-        floorTypeNames = []
+	# Get the Rooms at the current Floor
+		roomCollector = FilteredElementCollector(doc).WhereElementIsNotElementType().OfClass(SpatialElement)
+		currentViewRooms = []
 
-        for i in floorTypes:
-            typeName = Element.Name.__get__(i)
-            if typeName not in floorTypeNames:
-                floorTypeNames.append(typeName)
+		for room in roomCollector:
+		#Checks |>| Location (checking if it is present in the active Design Option) |>| Type is a Room |>| Room's LevelId is the Current Level's Id
+			if (room.Location != None) and (str(room.GetType()) == "Autodesk.Revit.DB.Architecture.Room") and (room.LevelId == presentLevel.Id):
+				currentViewRooms.append(room)
+			
+		
+		finalCurrentViewRoomNames = forms.SelectFromList.show([Element.Name.__get__(i) for i in currentViewRooms], title ="Select the Rooms to create Floors for", button_name = "OK", multiselect = True)
+		
+		finalCurrentViewRooms = []
+		for name in finalCurrentViewRoomNames:
+			for room in currentViewRooms:
+				if Element.Name.__get__(room) == name:
+					finalCurrentViewRooms.append(room)
 
-        nameOfChosenFloorType = forms.CommandSwitchWindow.show(floorTypeNames, message = "Pick Type of Floor")
-        
-        for i in floorTypes:
-            if (Element.Name.__get__(i) == nameOfChosenFloorType):
-                #Giving this variable the element itself, becuase CreateFloor() function needs the element itself
-                chosenFloorType = i
+		if chosenFloorType != None:
+			# This is the start of creatign Floor's
+			t.Start("Create Floors Using Rooms")
+			for room in finalCurrentViewRooms:
+				thisFloor = createFloor(room, floorType=chosenFloorType, currentLevel=presentLevel)
+				# Increase the Floor offset height from the current level with the value of floor thickness
+				((thisFloor.GetParameters("Height Offset From Level"))[0]).Set(chosenFloorTypeThickness)
+				# set the Location Room parameter of these floors into the selected room
+				try:
+					(thisFloor.GetParameters("Location - Room"))[0].Set(Element.Name.__get__(room))
+				except:
+					print("No Parametere named \"Location - Room\"")
 
-                chosenFloorTypeThickness = chosenFloorType.LookupParameter("Default Thickness").AsDouble()
-                # print(chosenFloorTypeThickness)
-                # chosenFloorTypeId = i.Id
+			t.Commit()
 
-# Reporting the Final Rooms after filtering out, and the FloorType chosen to apply to these Rooms
-        print("{}->{}. The Chosen floor type is->{}".format("The total rooms found are",len(currentViewRooms), nameOfChosenFloorType))
-        for i in finalCurrentViewRooms:
-            print(finalCurrentViewRooms.index(i)+1, i)
-            # print(finalCurrentViewRooms.index(i)+1, Element.Name.__get__(i))
+		print("Using [{}] as Floor Type, Created new Floors at Rooms: ".format(Element.Name.__get__(chosenFloorType)))
 
-#TaskDialog to get Yes or No, on continuing to create Floor's based off of Rooms Boundaries
-
-        if chosenFloorType != None:
-            # This is the start of creatign Floor's
-            t.Start("Create Floors Using Rooms")
-            for room in currentViewRooms:
-                thisFloor = createFloor(room,floorTypeId= chosenFloorType,currentLevelId=presentLevel, isStructural=False)
-                ((thisFloor.GetParameters("Height Offset From Level"))[0]).Set(chosenFloorTypeThickness)
-            t.Commit()
-
-        print("Successfully Created all Floors at these Rooms, with {} ".format(nameOfChosenFloorType))
+		print("{}".format(finalCurrentViewRoomNames))
 
 getRoomsCreateFloors()
