@@ -98,6 +98,7 @@ allFamilies = FilteredElementCollector(doc).OfClass((Family))
 print(allFamilies, allFamilies.GetElementCount())
 for famiy in allFamilies:
     print((famiy.Name),(famiy.Id))
+    
 
 
 
