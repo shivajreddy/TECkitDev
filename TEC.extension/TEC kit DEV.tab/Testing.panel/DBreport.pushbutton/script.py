@@ -50,6 +50,7 @@ def getProjectInformation():
     print("Project Version: {0}".format(project_version))
 
 
+
 docCollector = FilteredElementCollector(doc)
 
 print("total elements in the doc", docCollector.GetElementCount())
@@ -61,4 +62,50 @@ def getAllCategories():
     for cat in allCategories:
         print("Name -> {0} | {1}".format(cat.Name, cat.CategoryType))
 
-getProjectInformation()
+
+# getProjectInformation()
+
+g_p = GlobalParametersManager.GetAllGlobalParameters(doc)
+
+global_parameters = []
+for g in g_p:
+    e = doc.GetElement(g)
+    global_parameters.append(e)
+    
+def get_global_param_id(param_name):
+    for g in global_parameters:
+        if g.Name == param_name:
+            return g.Id
+
+def get_global_param_value(param_name):
+    for g in global_parameters:
+        if g.Name == param_name:
+            return g.GetValue().Value
+
+print(get_global_param_value("NEIGHBORHOOD"))
+
+
+def get_sheet(sheet_name):
+    for s in sheet_collector:
+        if (sheet_name) == (str(s.Name)):
+            return s
+
+
+# allFamilies = FilteredElementCollector(doc).OfClass(type(Family))
+allFamilies = FilteredElementCollector(doc).OfClass((Family))
+
+
+print(allFamilies, allFamilies.GetElementCount())
+for famiy in allFamilies:
+    print((famiy.Name),(famiy.Id))
+
+
+
+
+# cover_page =  get_sheet("COVER PAGE")
+
+# for c in cover_page.Parameters:
+
+#         if c.Definition.Name == "SF - AS DESIGNED - BASEMENT":
+#             g_id = get_global_param_id("SF - AS DESIGNED - BASEMENT")
+#             c.AssociateWithGlobalParameter(g_id)
