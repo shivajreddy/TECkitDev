@@ -76,7 +76,9 @@ class MyWindow(Windows.Window):
     def BrowseButtonClick(self, sender, args):
         openFileDlg = Microsoft.Win32.OpenFileDialog()
         result = openFileDlg.ShowDialog()
+        # setting the filepath_1 property to the MyWindow class
         self.filepath_1.Text = openFileDlg.FileName
+        self.templatePath = openFileDlg.FileName
 
     def BrowseButtonClick2(self, sender, args):
         openFileDlg = Microsoft.Win32.OpenFileDialog()
@@ -91,7 +93,9 @@ class MyWindow(Windows.Window):
 
     def RunEstimateReportButtonClick(self, sender, args):
         # myfile.foo()
-        ExportEstimates.run()
+        # chosen_template = self.templatePath.replace('\\', '/')
+        chosen_template = self.templatePath
+        ExportEstimates.run(templatePath=chosen_template)
         # print(excel_template_location[0])
 
     def ReportRunClick(self, sender, args):
@@ -99,4 +103,3 @@ class MyWindow(Windows.Window):
         print("run successfull")
 
 MyWindow().ShowDialog()
-
