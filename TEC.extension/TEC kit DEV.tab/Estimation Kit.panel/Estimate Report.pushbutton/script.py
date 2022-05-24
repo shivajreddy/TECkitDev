@@ -1,6 +1,6 @@
 import sys
 import os
-# print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
+print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
 # sys.path.append(r'')
 # sys.path.append(r'C:\Users\sreddy\Anaconda3\envs\AutoEstimate\Lib\site-packages')
 
