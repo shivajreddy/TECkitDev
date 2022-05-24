@@ -1,13 +1,12 @@
-#! python3
 import sys
 import os
 # print("PYTHONPATH:", os.environ.get('PYTHONPATH'))
 # sys.path.append(r'')
 # sys.path.append(r'C:\Users\sreddy\Anaconda3\envs\AutoEstimate\Lib\site-packages')
 
-import os
 import clr
-# import myfile
+import myfile
+import ExportEstimates
 
 # import pandas
 # import openpyxl
@@ -21,17 +20,6 @@ clr.AddReference('IronPython.Wpf')
 clr.AddReference('PresentationCore')
 clr.AddReference('PresentationFramework')
 
-
-import wpf
-from System import Windows
-from System.Windows import Media
-import System.IO
-import System.Windows
-import Microsoft.Win32
-import System.Windows.Controls as controls
-import System.Windows.Media.Imaging
-
-
 from pyrevit import UI
 from pyrevit import script
 from pyrevit import framework
@@ -41,6 +29,16 @@ from pyrevit.framework import wpf, Controls, Imaging
 xamlfilepath = script.get_bundle_file('myui3.xaml')
 teclogopath = script.get_bundle_file('teclogo.png')
 # teclogo = os.path.abspath(__file__) + "\\teclogo.png"
+
+
+import wpf
+from System import Windows
+from System.Windows import Media
+import System.IO
+import System.Windows
+import Microsoft.Win32
+import System.Windows.Controls as controls
+import System.Windows.Media.Imaging
 
 
 
@@ -92,7 +90,8 @@ class MyWindow(Windows.Window):
 
 
     def RunEstimateReportButtonClick(self, sender, args):
-        myfile.foo()
+        # myfile.foo()
+        ExportEstimates.run()
         # print(excel_template_location[0])
 
     def ReportRunClick(self, sender, args):
